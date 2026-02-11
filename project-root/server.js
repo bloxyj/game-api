@@ -8,7 +8,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/game', gameRoutes);
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Node.js OK http://localhost:${PORT}`);
+app.listen(3000, () => {
+    console.log("Undertale API OK : http://localhost:3000");
 });
