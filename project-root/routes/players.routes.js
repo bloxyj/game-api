@@ -12,4 +12,13 @@ router.post('/', (req, res) => {
 	return res.status(201).json(player)
 })
 
+router.get('/', (req, res) => {
+    const { name } = req.query
+    if (!name){
+        return res.status(400).json({ error: 'name is required' })
+    }
+    const player = playerRepo.create(name)
+    return res.status(201).json(player)
+})
+
 module.exports = router
