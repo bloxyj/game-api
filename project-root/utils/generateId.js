@@ -1,2 +1,2 @@
-let currantId = 0;
-module.exports = () => (currantId++).toString();
+let currentId = 0;
+module.exports = () => (currentId++).toString();
