@@ -1,0 +1,116 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: 'Courier New', Courier, monospace; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.undertale-ui {
+    width: 600px;
+}
+
+.battle-box {
+    border: 6px solid white;
+    height: 160px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    top: 50px;
+}
+
+#log {
+    font-size: 24px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Stats du joueur */
+.player-stats {
+    display: flex;
+    position: relative;
+    top: 50px;
+    left : 13%;
+    align-items: center;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.player-name, .player-lv {
+    margin-right: 30px;
+}
+
+.hp-section {
+    display: flex;
+    align-items: center;
+}
+
+.hp-label {
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.hp-bar-container {
+    width: 100px;
+    height: 20px;
+    background-color: red;
+    margin-right: 15px;
+}
+
+.hp-bar-fill {
+    width: 100%; /* Sera piloté par le JS plus tard */
+    height: 100%;
+    background-color: yellow;
+}
+
+/* Boutons de style Undertale */
+.action-buttons {
+    display: flex;
+    justify-content: space-evenly;
+    position:relative;
+    top: 50px;
+}
+
+.btn-undertale {
+    background: transparent;
+    border: 3px solid #e76f51; /* Couleur orange par défaut */
+    color: #e76f51;
+    padding: 10px 20px;
+    font-size: 24px;
+    cursor: pointer;
+    width: 130px;
+    transition: 0.1s;
+}
+
+.btn-undertale:hover {
+    color: white;
+    border-color: white;
+}
+
+/* Couleurs spécifiques aux boutons */
+.fight { border-color: #ff4d4d; color: #ff4d4d; }
+.act { border-color: #ffcc00; color: #ffcc00; }
+.item { border-color: #33cc33; color: #33cc33; }
+.mercy { border-color: #3399ff; color: #3399ff; }
+
+/* Aspect "sélectionné" (comme si l'âme était dessus) */
+.btn-undertale:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px white;
+}
+
+img {
+    display: flex;
+    position: relative;
+    left: 32%;
+    top: 15%;
+    width: 33%;
+}
