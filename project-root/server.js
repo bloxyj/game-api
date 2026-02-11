@@ -3,13 +3,13 @@ const app = express();
 const port = 3000;
 const hostname = 'localhost';
 const playerRoutes = require('./routes/players.routes');
-const monster_route = require('./routes/monster.route');
+const monsterRoute = require('./routes/monster.route');
 
 app.use(express.json());
 //app.use(express.static('public'));
 
 app.use('/players', playerRoutes)
-app.use('/monster_info', monster_route);
+app.use('/monster_info', monsterRoute);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API Express opérationnelle' });
