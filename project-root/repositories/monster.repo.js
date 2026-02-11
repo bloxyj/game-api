@@ -15,4 +15,3 @@ const monster_information = [{
 ]
 
 module.exports= monster_information;
-
