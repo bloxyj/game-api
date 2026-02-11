@@ -1,13 +1,13 @@
-const currantId = require('../utils/generateId');
+const generateId = require('../utils/generateId');
 
 const monster_information = [{
-    id:currantId(),
+    id:generateId(),
     PV: 100,
     ATK: 24,
     Type: "Wind Feary Shiny",
 },
 {
-    id:currantId(),
+    id:generateId(),
     PV: 150,
     ATK: 42,
     Type: "King Skeleton BOSS",  

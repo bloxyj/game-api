@@ -4,12 +4,14 @@ const port = 3000;
 const hostname = 'localhost';
 const playerRoutes = require('./routes/players.routes');
 const monsterRoute = require('./routes/monster.route');
+const overwiewRoute = require('./routes/overwiew.routes');
 
 app.use(express.json());
 //app.use(express.static('public'));
 
-app.use('/players', playerRoutes)
-app.use('/monster_info', monsterRoute);
+app.use('/game-api', overwiewRoute);
+app.use('/game-api/players', playerRoutes)
+app.use('/game-api/monster_info', monsterRoute);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API Express opérationnelle' });
