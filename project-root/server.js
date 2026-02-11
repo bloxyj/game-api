@@ -1,10 +1,14 @@
 const express = require('express');
+const path = require('path');
 const app = express();
+const gameRoutes = require('./routes/game.routes');
 
-app.get('/', (req, res) => {
-  res.json({ message: 'API Express opérationnelle' });
-});
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.listen(3000, () => {
-  console.log('Serveur lancé sur http://localhost:3000');
+app.use('/api/game', gameRoutes);
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Node.js OK http://localhost:${PORT}`);
 });
