@@ -1,9 +1,17 @@
-const monsters = [
-    { id: 1, name: "Gobelin", hp: 50, attack: 10 },
-    { id: 2, name: "Dragon", hp: 200, attack: 50 }
-];
+const generateId = require('../utils/generateId');
 
-module.exports = {
-    getAll: () => monsters,
-    getById: (id) => monsters.find(m => m.id === id)
-};
+const monster_information = [{
+    id:generateId(),
+    PV: 100,
+    ATK: 24,
+    Type: "Wind Feary Shiny",
+},
+{
+    id:generateId(),
+    PV: 150,
+    ATK: 42,
+    Type: "King Skeleton BOSS",  
+}
+]
+
+module.exports= monster_information;
