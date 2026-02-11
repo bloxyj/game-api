@@ -17,15 +17,34 @@
             <p id="log"> *Sans vous bloque votre chemin.*</p>
         </div>
 
-        <div class="player-stats">
-            <span class="player-name">Test</span>
-            <span class="player-lv">LV 19</span>
-            <div class="hp-section">
-                <span class="hp-label">HP</span>
-                <div class="hp-bar-container">
-                    <div id="player-hp" class="hp-bar-fill"></div>
+        <div class="undertale-ui">
+            <div class="enemy-hp-container">
+                <div id="enemy-hp" class="enemy-hp-fill"></div>
+            </div>
+            
+            <div class="enemy-container">
+                <img src="img/sans-removebg.png" alt="Sans" class="enemy-sprite">
+            </div>
+
+            <div class="battle-box">
+                <p id="log">* Sans vous observe d'un air moqueur.</p>
+            </div>
+
+            <div class="player-stats">
+                <span class="player-name">TEST</span>
+                <span class="player-lv">LV 19</span>
+                <div class="hp-section">
+                    <span class="hp-label">HP</span>
+                    <div class="hp-bar-container">
+                        <div id="player-hp" class="hp-bar-fill"></div>
+                    </div>
+                    <span class="hp-values">100 / 100</span>
                 </div>
-                <span class="hp-values">92 / 92</span>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-undertale fight" id="btn-attack">FIGHT</button>
+                <button class="btn-undertale mercy" id="btn-defend">MERCY</button>
             </div>
         </div>
 
