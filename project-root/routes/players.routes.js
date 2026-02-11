@@ -8,8 +8,8 @@ router.post('/', (req, res) => {
 		return res.status(400).json({ error: 'name is required' })
 	}
 
-	const player = playerRepo.create(name)
-	return res.status(201).json(player)
+	const newPlayer = player.create(name)
+	return res.status(201).json(newPlayer)
 })
 
 router.get('/', (req, res) => {
