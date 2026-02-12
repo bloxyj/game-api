@@ -11,5 +11,5 @@ app.use(express.json());
 app.use('/monster_info', monster_route);
 
 app.listen(port,hostname, () => {
-  console.log(`Serveur lancé sur http://${hostname}:${port}`);
+  console.log(`\n Serveur lancé sur http://${hostname}:${port}`);
 });   
