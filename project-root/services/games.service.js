@@ -34,3 +34,34 @@ exports.createGame = (playerId) => {
     store.games.push(newGame);
     return newGame;
 };
+
+exports.movePlayer = (gameId) => {
+    
+    const game = store.games.find(g => g.id === gameId);
+    if (!game) return { error: "Partie introuvable." };
+    if (game.status !== 'IN_PROGRESS') return { error: "La partie est terminée." };
+
+    // 2. Vérifier la salle actuelle
+    const currentRoom = game.dungeon.find(r => r.id === game.currentRoomId);
+    
+    
+    if (currentRoom.monster && currentRoom.monster.hp > 0) {
+        return { error: "Un monstre vous bloque le passage ! Tuez-le pour avancer." };
+    }
+
+    // 3. Calculer la prochaine salle
+    const nextRoomId = game.currentRoomId + 1;
+    const nextRoom = game.dungeon.find(r => r.id === nextRoomId);
+
+    if (!nextRoom) {
+        
+        game.status = "VICTORY";
+        game.logs.push("Vous sortez du donjon. Victoire !");
+        return game;
+    }
+
+    game.currentRoomId = nextRoomId;
+    game.logs.push(`Vous avancez vers : ${nextRoom.name}`);
+    
+    return game;
+};
