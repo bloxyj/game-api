@@ -2,43 +2,71 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Undertale Fight - Sans</title>
+    <title>Rogue-Lite Undertale</title>
     <link rel="stylesheet" href="./style.css">
+    <style>
+        /* Ajout de styles pour le menu et l'exploration */
+        #login-screen, #game-screen { display: none; }
+        .active-screen { display: block !important; }
+        
+        #room-info { 
+            text-align: center; margin-bottom: 20px; color: yellow; 
+            font-size: 1.2em; border: 2px solid white; padding: 10px;
+        }
+        #exploration-controls { text-align: center; margin-top: 20px; }
+        
+        input { background: black; color: white; border: 2px solid white; padding: 10px; font-family: inherit; }
+    </style>
 </head>
 <body>
-    <div class="undertale-ui" id="main-ui">
-        <div id="enemy-ui-block" class="enemy-stats">
-            <span class="enemy-name">SANS</span>
-            <div class="enemy-hp-container"><div id="enemy-hp" class="enemy-hp-fill"></div></div>
-        </div>
+
+    <div id="login-screen" class="active-screen undertale-ui">
+        <h1>ROGUE-LITE API</h1>
+        <p>Entrez votre nom pour commencer :</p>
+        <input type="text" id="player-name-input" placeholder="Nom du joueur">
+        <br><br>
+        <button class="btn-undertale fight" id="btn-start-game">START</button>
+    </div>
+
+    <div id="game-screen" class="undertale-ui">
         
-        <div class="enemy-container">
-            <img src="img/sans-removebg.png" alt="Sans" class="enemy-sprite" id="sans-sprite">
+        <div id="room-info">
+            <h2 id="room-name">Chargement...</h2>
+            <p id="room-log" style="font-size: 0.8em; color: #ccc;">...</p>
         </div>
 
-        <div class="battle-box"><p id="log">* Sans vous observe.</p></div>
+        <div id="combat-ui" style="display:none;">
+            <div id="enemy-ui-block" class="enemy-stats">
+                <span class="enemy-name" id="enemy-name-display">MONSTRE</span>
+                <div class="enemy-hp-container"><div id="enemy-hp" class="enemy-hp-fill"></div></div>
+            </div>
+            
+            <div class="enemy-container">
+                <img src="img/sans-removebg.png" alt="Enemy" class="enemy-sprite" id="enemy-sprite">
+            </div>
 
-        <div class="player-stats">
-            <span>TEST</span> <span style="margin-left:20px">LV 19</span>
-            <div class="hp-section">
-                <span class="hp-label">HP</span>
-                <div class="hp-bar-container"><div id="player-hp" class="hp-bar-fill"></div></div>
-                <span class="hp-values">100 / 100</span>
+            <div class="battle-box"><p id="log">* Le combat commence.</p></div>
+
+            <div class="player-stats">
+                <span id="player-name-display">JOUEUR</span> <span style="margin-left:20px">LV 1</span>
+                <div class="hp-section">
+                    <span class="hp-label">HP</span>
+                    <div class="hp-bar-container"><div id="player-hp" class="hp-bar-fill"></div></div>
+                    <span class="hp-values" id="hp-text">100 / 100</span>
+                </div>
+            </div>
+
+            <div class="action-buttons" id="combat-buttons">
+                <button class="btn-undertale fight" id="btn-attack">FIGHT</button>
             </div>
         </div>
 
-        <div class="action-buttons" id="ui-buttons">
-            <button class="btn-undertale fight" id="btn-attack">FIGHT</button>
-            <button class="btn-undertale mercy" id="btn-mercy">MERCY</button>
+        <div id="exploration-controls" style="display:none;">
+            <p>* La voie est libre.</p>
+            <button class="btn-undertale mercy" id="btn-move">AVANCER</button>
         </div>
-    </div>
 
-    <div id="final-scene">
-        <img src="img/fin.png" alt="Fin" class="fullscreen-img">
-        <button id="btn-restart-final" class="btn-undertale retry-overlay">RETRY</button>
     </div>
-
-    <audio id="bgm" src="audio/010. Ghost Fight (UNDERTALE Soundtrack) - Toby Fox.mp3" loop></audio>
 
     <script src="script.js"></script>
 </body>
