@@ -6,6 +6,7 @@ const hostname = 'localhost';
 const playerRoutes = require('./routes/players.routes');
 const monsterRoute = require('./routes/monster.route');
 const overwiewRoute = require('./routes/overwiew.routes');
+const gamesRoutes = require('./routes/games.routes');
 
 app.use(express.json());
 //app.use(express.static('public'));
@@ -13,6 +14,8 @@ app.use(express.json());
 app.use('/game-api', overwiewRoute);
 app.use('/game-api/players', playerRoutes)
 app.use('/game-api/monster_info', monsterRoute);
+app.use('/game-api/games', gamesRoutes);
+
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

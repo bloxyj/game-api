@@ -1,37 +1,36 @@
-const gameState = require('../data/store');
+// services/games.service.js
+const store = require('../data/store');
+const generateId = require('../utils/generateId');
 
-exports.processTurn = (actionType) => {
-    let logPlayer = "";
-    let logEnemy = "";
 
-    if (actionType === 'attack') {
-        const dmg = Math.floor(Math.random() * 15) + 10;
-        gameState.enemyHP -= dmg;
-        logPlayer = `Vous attaquez Sans ! -${dmg} PV`;
-    } else {
-        logPlayer = `Vous observez Sans prudemment.`;
+exports.createGame = (playerId) => {
+    
+    const player = store.players.find(p => p.id === playerId);
+    if (!player) {
+        return { error: "Joueur introuvable. Créez d'abord un joueur via POST /players" };
     }
 
-    if (gameState.enemyHP > 0) {
-        const enemyDmg = Math.floor(Math.random() * 12) + 5;
-        gameState.playerHP -= enemyDmg;
-        logEnemy = `Sans utilise une attaque d'os ! -${enemyDmg} PV`;
-    }
+    
+    const dungeon = [
+        { id: 1, name: "Entrée sombre", monster: null },
+        { id: 2, name: "Couloir humide", monster: store.monsters[0] }, // Wind Feary
+        { id: 3, name: "Armurerie vide", monster: null },
+        { id: 4, name: "Antre du Boss", monster: store.monsters[1] },  // Sans
+        { id: 5, name: "Salle du trésor", monster: null, isExit: true }
+    ];
 
-    return {
-        state: gameState,
-        logPlayer,
-        logEnemy,
-        isGameOver: gameState.enemyHP <= 0 || gameState.playerHP <= 0
+    const newGame = {
+        id: generateId(),
+        playerId: player.id,
+        playerName: player.name,
+        dungeon: dungeon,
+        currentRoomId: 1, 
+        playerCurrentHP: player.hp,
+        status: 'IN_PROGRESS', // 
+        logs: ["La partie commence. Vous entrez dans le donjon."]
     };
-};
 
-exports.fleeGame = () => {
-    return { message: "Vous avez pris la fuite..." };
-};
-
-exports.resetGame = () => {
-    gameState.playerHP = 100;
-    gameState.enemyHP = 100;
-    return gameState;
+   
+    store.games.push(newGame);
+    return newGame;
 };
