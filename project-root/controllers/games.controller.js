@@ -33,3 +33,15 @@ exports.move = (req, res) => {
 
     res.json(result);
 };
+
+// controllers/games.controller.js (Ajouter à la fin)
+
+exports.attack = (req, res) => {
+    const gameId = req.params.id;
+    const result = gamesService.playTurn(gameId);
+
+    if (result.error) {
+        return res.status(400).json(result);
+    }
+    res.json(result);
+};
