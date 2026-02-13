@@ -1,12 +1,24 @@
-const generateId = require('../utils/generateId')
 
+const store = require('../data/store'); 
+const generateId = require('../utils/generateId');
 
+module.exports = {
+    
+    findAll: () => store.players,
 
-const player = {
-    id:generateId(),
-    name: "Player1",
-    hp: 100,
-    attack: 25
-}
-
-module.exports = player
+   
+    create: (name) => {
+        const newPlayer = {
+            id: generateId(),
+            name: name,
+            hp: 100,
+            attack: 25,
+            level: 1
+        };
+        store.players.push(newPlayer); 
+        return newPlayer;
+    },
+    
+  
+    findById: (id) => store.players.find(p => p.id === id)
+};
