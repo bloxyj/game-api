@@ -1,0 +1,69 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: api
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+  front:
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+    container_name: front
+    ports:
+      - "8100:80"
+    depends_on:
+      - api
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    hostname: mongodb
+    volumes:
+    - mongodb_data:/data/db
+
+    env_file:
+      - .env
+    environment:
+      - MONGO_CONFIG_MONGODB_ADMINISTRATOR_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_CONFIG_MONGODB_ADMINISTRATOR_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "27017:27017"
+    networks:
+      - mongodb_network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express 
+    hostname: mongo-express 
+    env_file:
+    - .env 
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - mongodb_network
+
+volumes:
+  mongodb_data:
+    driver: local
+    name: mongodb_data
+
+networks:
+  mongodb_network:
+    driver: bridge
+    name: mongodb_network
