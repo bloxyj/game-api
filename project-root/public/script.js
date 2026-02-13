@@ -1,94 +1,133 @@
-const log = document.getElementById('log');
-const sansSprite = document.getElementById('sans-sprite');
-const enemyUI = document.getElementById('enemy-ui-block');
-const mainUI = document.getElementById('main-ui');
-const finalScene = document.getElementById('final-scene');
-const uiButtons = document.getElementById('ui-buttons');
+// --- VARIABLES GLOBALES ---
+let gameId = null;
+let playerId = null;
 
-async function apiCall(endpoint, body = null) {
-    const options = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+// --- ÉLÉMENTS DOM ---
+const loginScreen = document.getElementById('login-screen');
+const gameScreen = document.getElementById('game-screen');
+const roomName = document.getElementById('room-name');
+const roomLog = document.getElementById('room-log');
+const combatUI = document.getElementById('combat-ui');
+const explorationUI = document.getElementById('exploration-controls');
+const logBox = document.getElementById('log');
+const enemySprite = document.getElementById('enemy-sprite');
+
+// --- FONCTIONS API ---
+const API_URL = 'http://localhost:3000/game-api';
+
+async function apiCall(url, method = 'POST', body = null) {
+    const options = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' }
+    };
     if (body) options.body = JSON.stringify(body);
-    const res = await fetch(`/api/game/${endpoint}`, options);
-    return await res.json();
-}
-
-// APPARITION DE L'IMAGE FINALE
-function triggerFinalTransition() {
-    mainUI.classList.add('hidden-ui');
-    setTimeout(() => {
-        mainUI.style.display = 'none';
-        finalScene.classList.add('visible-scene');
-    }, 1500);
-}
-
-async function executeTurn(action) {
-    const data = await apiCall('turn', { actionType: action });
-    log.innerText = `* ${data.logPlayer}`;
-    if (action === 'attack') {
-        sansSprite.classList.add('shake');
-        setTimeout(() => sansSprite.classList.remove('shake'), 500);
+    
+    try {
+        const res = await fetch(url, options);
+        return await res.json();
+    } catch (err) {
+        console.error("Erreur API:", err);
+        alert("Erreur de connexion au serveur");
     }
-    updateUI(data.state);
+}
 
-    if (!data.isGameOver) {
-        setTimeout(() => {
-            log.innerText = `* ${data.logEnemy}`;
-            updateUI(data.state);
-        }, 1000);
+// --- LOGIQUE DU JEU ---
+
+// 1. Démarrer le jeu
+document.getElementById('btn-start-game').addEventListener('click', async () => {
+    const name = document.getElementById('player-name-input').value;
+    if (!name) return alert("Entrez un nom !");
+
+    // Créer Joueur
+    const player = await apiCall(`${API_URL}/players`, 'POST', { name });
+    playerId = player.id;
+    document.getElementById('player-name-display').innerText = player.name.toUpperCase();
+
+    // Créer Partie
+    const game = await apiCall(`${API_URL}/games`, 'POST', { playerId });
+    gameId = game.id;
+
+    // Changer d'écran
+    loginScreen.classList.remove('active-screen');
+    gameScreen.classList.add('active-screen');
+
+    updateInterface(game);
+});
+
+// 2. Attaquer
+document.getElementById('btn-attack').addEventListener('click', async () => {
+    if (!gameId) return;
+    
+    // Animation visuelle
+    enemySprite.classList.add('shake');
+    setTimeout(() => enemySprite.classList.remove('shake'), 500);
+
+    const gameState = await apiCall(`${API_URL}/games/${gameId}/attack`, 'POST');
+    updateInterface(gameState);
+});
+
+// 3. Avancer
+document.getElementById('btn-move').addEventListener('click', async () => {
+    if (!gameId) return;
+    const gameState = await apiCall(`${API_URL}/games/${gameId}/move`, 'POST');
+    
+    if (gameState.error) {
+        alert(gameState.error);
     } else {
-        log.innerText = "* Le combat est fini.";
-        setTimeout(triggerFinalTransition, 2000);
+        updateInterface(gameState);
+    }
+});
+
+// --- MISE À JOUR DE L'INTERFACE (LE COEUR DU SYSTÈME) ---
+function updateInterface(game) {
+    // 1. Infos de base
+    const currentRoom = game.dungeon.find(r => r.id === game.currentRoomId);
+    roomName.innerText = `SALLE ${game.currentRoomId} : ${currentRoom.name}`;
+    
+    // Afficher le dernier log important
+    if (game.logs.length > 0) {
+        const lastLog = game.logs[game.logs.length - 1];
+        roomLog.innerText = lastLog;
+        logBox.innerText = "* " + lastLog;
+    }
+
+    // 2. Gestion HP Joueur
+    const hpPercent = Math.max(0, game.playerCurrentHP); // Sur 100
+    document.getElementById('player-hp').style.width = hpPercent + "%";
+    document.getElementById('hp-text').innerText = `${hpPercent} / 100`;
+
+    // 3. Y a-t-il un monstre vivant ?
+    const monster = currentRoom.monster;
+    const isMonsterAlive = monster && monster.hp > 0;
+
+    if (isMonsterAlive) {
+        // MODE COMBAT
+        combatUI.style.display = 'block';
+        explorationUI.style.display = 'none';
+        
+        // Infos Monstre
+        document.getElementById('enemy-name-display').innerText = monster.name.toUpperCase();
+        
+        // Calcul HP Monstre (basique car on ne connait pas le HP Max dans le store simplifié, on suppose 100 ou 150)
+        // Astuce : On laisse la barre verte pleine tant qu'il est vivant, ou on fait une estimation
+        let maxMonsterHP = (monster.name.includes("Boss")) ? 150 : 50; 
+        let monsterHpPercent = (monster.hp / maxMonsterHP) * 100;
+        document.getElementById('enemy-hp').style.width = Math.max(0, monsterHpPercent) + "%";
+
+    } else {
+        // MODE EXPLORATION (Monstre mort ou salle vide)
+        combatUI.style.display = 'none';
+        explorationUI.style.display = 'block';
+        
+        if (game.status === 'VICTORY') {
+            roomName.innerText = "🏆 VICTOIRE !";
+            document.getElementById('btn-move').style.display = 'none'; // Plus de mouvement
+        }
+    }
+
+    // Gestion Game Over
+    if (game.status === 'GAME_OVER') {
+        alert("GAME OVER ! Rafraichissez la page pour recommencer.");
+        location.reload();
     }
 }
-
-function updateUI(state) {
-    document.getElementById('player-hp').style.width = Math.max(0, state.playerHP) + "%";
-    document.getElementById('enemy-hp').style.width = Math.max(0, state.enemyHP) + "%";
-    document.querySelector('.hp-values').innerText = `${Math.max(0, state.playerHP)} / 100`;
-}
-
-// BOUTON MERCY
-document.getElementById('btn-mercy').addEventListener('click', async () => {
-    const data = await apiCall('flee');
-    log.innerText = `* ${data.message}`;
-    sansSprite.classList.add('fade-out');
-    enemyUI.classList.add('fade-out');
-    uiButtons.style.display = 'none';
-    setTimeout(triggerFinalTransition, 2500);
-});
-
-// BOUTON RETRY (Sur l'image de fin)
-document.getElementById('btn-restart-final').addEventListener('click', async () => {
-    const state = await apiCall('reset');
-    finalScene.classList.remove('visible-scene');
-    setTimeout(() => {
-        finalScene.style.display = 'none';
-        mainUI.style.display = 'block';
-        mainUI.classList.remove('hidden-ui');
-        sansSprite.classList.remove('fade-out');
-        enemyUI.classList.remove('fade-out');
-        uiButtons.style.display = 'flex';
-        updateUI(state);
-        log.innerText = "* Nouveau départ.";
-    }, 1000);
-});
-
-document.getElementById('btn-attack').addEventListener('click', () => executeTurn('attack'));
-
-window.onload = async () => {
-    const res = await fetch('/api/game/state');
-    updateUI(await res.json());
-};
-
-//music undertale fight
-const music = document.getElementById('bgm');
-
-function startMusic() {
-    music.play().catch(error => {
-        console.log("L'autoplay a été bloqué, en attente d'interaction.");
-    });
-    document.removeEventListener('click', startMusic);
-}
-
-// lance la music après le premier clique
-document.addEventListener('click', startMusic);
