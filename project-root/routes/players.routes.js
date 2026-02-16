@@ -1,19 +1,21 @@
-const express = require('express')
-const router = express.Router()
-const player = require('../repositories/player.repo')
+const express = require('express');
+const router = express.Router();
+const playersController = require('../controllers/players.controller');
+const { authMiddleware } = require('../utils/jwt');
 
-router.post('/', (req, res) => {
-	const { name } = req.body
-	if (!name) {
-		return res.status(400).json({ error: 'name is required' })
-	}
+// All player routes require authentication
+router.use(authMiddleware);
 
-	const newPlayer = player.create(name)
-	return res.status(201).json(newPlayer)
-})
+// GET /game-api/players - Get all players
+router.get('/', playersController.getAllPlayers);
 
-router.get('/', (req, res) => {
-    res.json({message: player})
-});
+// GET /game-api/players/me - Get my players
+router.get('/me', playersController.getMyPlayers);
 
-module.exports = router
+// GET /game-api/players/:id - Get player by ID
+router.get('/:id', playersController.getPlayerById);
+
+// POST /game-api/players - Create a new player
+router.post('/', playersController.createPlayer);
+
+module.exports = router;

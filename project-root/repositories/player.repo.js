@@ -1,24 +1,24 @@
-
-const store = require('../data/store'); 
-const generateId = require('../utils/generateId');
+const Player = require('../models/Player.model');
 
 module.exports = {
-    
-    findAll: () => store.players,
-
-   
-    create: (name) => {
-        const newPlayer = {
-            id: generateId(),
-            name: name,
-            hp: 100,
-            attack: 25,
-            level: 1
-        };
-        store.players.push(newPlayer); 
-        return newPlayer;
+    findAll: async () => {
+        return Player.find();
     },
-    
-  
-    findById: (id) => store.players.find(p => p.id === id)
+
+    findById: async (id) => {
+        return Player.findById(id);
+    },
+
+    findByUserId: async (userId) => {
+        return Player.find({ userId });
+    },
+
+    create: async (name, userId) => {
+        const newPlayer = new Player({ name, userId });
+        return newPlayer.save();
+    },
+
+    deleteById: async (id) => {
+        return Player.findByIdAndDelete(id);
+    }
 };
