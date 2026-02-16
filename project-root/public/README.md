@@ -1,0 +1,1 @@
+# This is an example front end for the game API to show off what you can do with it (this is slop). Feel free to build your own client against the same endpoints

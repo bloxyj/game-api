@@ -1,20 +1,27 @@
 const mongoose = require('mongoose');
+const { applyBaseSchemaOptions } = require('../utils/serializer');
+const generateId = require('../utils/generateId');
 
 const roomSchema = new mongoose.Schema({
-    id: { type: Number, required: true },
+    id: { type: String, required: true },
     name: { type: String, required: true },
     monster: {
         name: String,
         hp: Number,
         atk: Number,
-        xp: Number
+        xp: Number,
+        image: String
     },
     isExit: { type: Boolean, default: false }
 }, { _id: false });
 
 const gameSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        default: () => generateId()
+    },
     playerId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'Player',
         required: true
     },
@@ -24,8 +31,7 @@ const gameSchema = new mongoose.Schema({
     },
     dungeon: [roomSchema],
     currentRoomId: {
-        type: Number,
-        default: 1
+        type: String
     },
     playerCurrentHP: {
         type: Number,
@@ -40,6 +46,8 @@ const gameSchema = new mongoose.Schema({
         type: [String],
         default: []
     }
-}, { timestamps: true });
+}, { _id: false, timestamps: true });
+
+applyBaseSchemaOptions(gameSchema);
 
 module.exports = mongoose.model('Game', gameSchema);
