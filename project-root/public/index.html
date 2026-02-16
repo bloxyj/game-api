@@ -22,10 +22,39 @@
 
     <div id="login-screen" class="active-screen undertale-ui">
         <h1>ROGUE-LITE API</h1>
-        <p>Entrez votre nom pour commencer :</p>
-        <input type="text" id="player-name-input" placeholder="Nom du joueur">
-        <br><br>
-        <button class="btn-undertale fight" id="btn-start-game">START</button>
+        
+        <!-- Auth Section -->
+        <div id="auth-section">
+            <div id="auth-login">
+                <p>Login to play:</p>
+                <input type="text" id="auth-username" placeholder="Username">
+                <input type="password" id="auth-password" placeholder="Password">
+                <br><br>
+                <button class="btn-undertale fight" id="btn-login">LOGIN</button>
+                <br><br>
+                <p style="font-size: 0.7em; color: #888;">No account? <a href="#" id="show-register" style="color: yellow;">Register</a></p>
+            </div>
+            
+            <div id="auth-register" style="display:none;">
+                <p>Create an account:</p>
+                <input type="text" id="reg-username" placeholder="Username">
+                <input type="email" id="reg-email" placeholder="Email">
+                <input type="password" id="reg-password" placeholder="Password (min 6 chars)">
+                <br><br>
+                <button class="btn-undertale fight" id="btn-register">REGISTER</button>
+                <br><br>
+                <p style="font-size: 0.7em; color: #888;">Already have an account? <a href="#" id="show-login" style="color: yellow;">Login</a></p>
+            </div>
+        </div>
+
+        <!-- Player Section (shown after auth) -->
+        <div id="player-section" style="display:none;">
+            <p>Welcome, <span id="auth-user-display" style="color: yellow;"></span>! <a href="#" id="btn-logout" style="color: red; font-size: 0.7em;">Logout</a></p>
+            <p>Enter your character name:</p>
+            <input type="text" id="player-name-input" placeholder="Nom du joueur">
+            <br><br>
+            <button class="btn-undertale fight" id="btn-start-game">START</button>
+        </div>
     </div>
 
     <div id="game-screen" class="undertale-ui">

@@ -10,6 +10,10 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    depends_on:
+      - mongodb
+    networks:
+      - mongodb_network
 
   front:
     build:
@@ -20,6 +24,8 @@ services:
       - "8100:80"
     depends_on:
       - api
+    networks:
+      - mongodb_network
 
   mongodb:
     image: mongo:latest

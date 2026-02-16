@@ -1,6 +1,8 @@
 // --- VARIABLES GLOBALES ---
 let gameId = null;
 let playerId = null;
+let authToken = localStorage.getItem('authToken') || null;
+let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
 // --- ÉLÉMENTS DOM ---
 const loginScreen = document.getElementById('login-screen');
@@ -13,23 +15,129 @@ const logBox = document.getElementById('log');
 const enemySprite = document.getElementById('enemy-sprite');
 
 // --- FONCTIONS API ---
-const API_URL = 'http://localhost:3000/game-api';
+const API_URL = '/game-api';
 
 async function apiCall(url, method = 'POST', body = null) {
     const options = {
         method: method,
         headers: { 'Content-Type': 'application/json' }
     };
+    
+    // Add auth token if available
+    if (authToken) {
+        options.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
     if (body) options.body = JSON.stringify(body);
     
     try {
         const res = await fetch(url, options);
-        return await res.json();
+        const data = await res.json();
+        
+        // Handle 401 - token expired or invalid
+        if (res.status === 401) {
+            logout();
+            alert('Session expired. Please login again.');
+            return null;
+        }
+        
+        return data;
     } catch (err) {
         console.error("Erreur API:", err);
         alert("Erreur de connexion au serveur");
+        return null;
     }
 }
+
+// --- AUTH FUNCTIONS ---
+
+function saveAuth(token, user) {
+    authToken = token;
+    currentUser = user;
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('currentUser', JSON.stringify(user));
+}
+
+function logout() {
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    
+    // Reset UI
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('player-section').style.display = 'none';
+    document.getElementById('auth-login').style.display = 'block';
+    document.getElementById('auth-register').style.display = 'none';
+    
+    // Make sure we're on login screen
+    gameScreen.classList.remove('active-screen');
+    loginScreen.classList.add('active-screen');
+}
+
+function showLoggedInUI() {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('player-section').style.display = 'block';
+    document.getElementById('auth-user-display').innerText = currentUser.username;
+}
+
+// Check if already logged in on page load
+if (authToken && currentUser) {
+    showLoggedInUI();
+}
+
+// Toggle between login and register forms
+document.getElementById('show-register').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('auth-login').style.display = 'none';
+    document.getElementById('auth-register').style.display = 'block';
+});
+
+document.getElementById('show-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('auth-register').style.display = 'none';
+    document.getElementById('auth-login').style.display = 'block';
+});
+
+// Login
+document.getElementById('btn-login').addEventListener('click', async () => {
+    const username = document.getElementById('auth-username').value;
+    const password = document.getElementById('auth-password').value;
+    
+    if (!username || !password) return alert('Enter username and password!');
+    
+    const result = await apiCall(`${API_URL}/auth/login`, 'POST', { username, password });
+    if (result && result.token) {
+        saveAuth(result.token, result.user);
+        showLoggedInUI();
+    } else if (result && result.error) {
+        alert(result.error);
+    }
+});
+
+// Register
+document.getElementById('btn-register').addEventListener('click', async () => {
+    const username = document.getElementById('reg-username').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    
+    if (!username || !email || !password) return alert('Fill in all fields!');
+    if (password.length < 6) return alert('Password must be at least 6 characters!');
+    
+    const result = await apiCall(`${API_URL}/auth/register`, 'POST', { username, email, password });
+    if (result && result.token) {
+        saveAuth(result.token, result.user);
+        showLoggedInUI();
+    } else if (result && result.error) {
+        alert(result.error);
+    }
+});
+
+// Logout
+document.getElementById('btn-logout').addEventListener('click', (e) => {
+    e.preventDefault();
+    logout();
+});
 
 // --- LOGIQUE DU JEU ---
 
@@ -40,12 +148,14 @@ document.getElementById('btn-start-game').addEventListener('click', async () => 
 
     // Créer Joueur
     const player = await apiCall(`${API_URL}/players`, 'POST', { name });
-    playerId = player.id;
+    if (!player || player.error) return alert(player ? player.error : 'Failed to create player');
+    playerId = player._id;
     document.getElementById('player-name-display').innerText = player.name.toUpperCase();
 
     // Créer Partie
     const game = await apiCall(`${API_URL}/games`, 'POST', { playerId });
-    gameId = game.id;
+    if (!game || game.error) return alert(game ? game.error : 'Failed to create game');
+    gameId = game._id;
 
     // Changer d'écran
     loginScreen.classList.remove('active-screen');
