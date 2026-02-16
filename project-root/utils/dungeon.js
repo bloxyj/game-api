@@ -1,29 +1,30 @@
-// utils/dungeon.js
-// Generates a 5-room dungeon with deep-cloned monster instances
+const generateId = require('./generateId');
 
 const buildDungeon = (monsters) => {
-    // monsters is an array of monster documents from DB
-    // We deep-clone them so combat doesn't mutate the originals
-    const fairy = monsters.find(m => m.name === 'Wind Fairy');
-    const boss = monsters.find(m => m.name === 'Sans (Boss)');
-
     const cloneMonster = (m) => {
         if (!m) return null;
         return {
             name: m.name,
             hp: m.hp,
             atk: m.atk,
-            xp: m.xp
+            xp: m.xp,
+            image: m.image
         };
     };
 
-    return [
-        { id: 1, name: "Entrée sombre", monster: null },
-        { id: 2, name: "Couloir humide", monster: cloneMonster(fairy) },
-        { id: 3, name: "Armurerie vide", monster: null },
-        { id: 4, name: "Antre du Boss", monster: cloneMonster(boss) },
-        { id: 5, name: "Salle du trésor", monster: null, isExit: true }
+    const find = (name) => monsters.find(m => m.name === name);
+
+    const rooms = [
+        { id: generateId(), name: "Ruins - Home", monster: cloneMonster(find('Toriel')) },
+        { id: generateId(), name: "Snowdin - Bridge", monster: cloneMonster(find('Papyrus')) },
+        { id: generateId(), name: "Waterfall - Bridge", monster: cloneMonster(find('Undyne')) },
+        { id: generateId(), name: "Hotland - Spider Bakery", monster: cloneMonster(find('Muffet')) },
+        { id: generateId(), name: "Barrier", monster: cloneMonster(find('Asgore Dreemurr')) },
+        { id: generateId(), name: "True Lab", monster: cloneMonster(find('Asriel Dreemurr')) },
+        { id: generateId(), name: "Last Corridor", monster: cloneMonster(find('Sans')) },
     ];
+
+    return rooms;
 };
 
 module.exports = { buildDungeon };

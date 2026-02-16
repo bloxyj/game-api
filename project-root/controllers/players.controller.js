@@ -1,45 +1,30 @@
 const playerRepo = require('../repositories/player.repo');
+const asyncHandler = require('../utils/asyncHandler');
 
-exports.getAllPlayers = async (req, res) => {
-    try {
-        const players = await playerRepo.findAll();
-        res.json({ players });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch players: ' + error.message });
+exports.getAllPlayers = asyncHandler(async (req, res) => {
+    const players = await playerRepo.findAll();
+    res.json({ players });
+});
+
+exports.getMyPlayers = asyncHandler(async (req, res) => {
+    const players = await playerRepo.findByUserId(req.user.userId);
+    res.json({ players });
+});
+
+exports.createPlayer = asyncHandler(async (req, res) => {
+    const { name } = req.body;
+    if (!name) {
+        return res.status(400).json({ message: 'name is required' });
     }
-};
 
-exports.getMyPlayers = async (req, res) => {
-    try {
-        const players = await playerRepo.findByUserId(req.user.userId);
-        res.json({ players });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch players: ' + error.message });
+    const newPlayer = await playerRepo.create(name, req.user.userId);
+    res.status(201).json(newPlayer);
+});
+
+exports.getPlayerById = asyncHandler(async (req, res) => {
+    const player = await playerRepo.findById(req.params.id);
+    if (!player) {
+        return res.status(404).json({ message: 'Player not found' });
     }
-};
-
-exports.createPlayer = async (req, res) => {
-    try {
-        const { name } = req.body;
-        if (!name) {
-            return res.status(400).json({ error: 'name is required' });
-        }
-
-        const newPlayer = await playerRepo.create(name, req.user.userId);
-        res.status(201).json(newPlayer);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to create player: ' + error.message });
-    }
-};
-
-exports.getPlayerById = async (req, res) => {
-    try {
-        const player = await playerRepo.findById(req.params.id);
-        if (!player) {
-            return res.status(404).json({ error: 'Player not found' });
-        }
-        res.json(player);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch player: ' + error.message });
-    }
-};
+    res.json(player);
+});

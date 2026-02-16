@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
+const { applyBaseSchemaOptions } = require('../utils/serializer');
+const generateId = require('../utils/generateId');
 
 const monsterSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        default: () => generateId()
+    },
     name: {
         type: String,
         required: true,
@@ -17,7 +23,18 @@ const monsterSchema = new mongoose.Schema({
     xp: {
         type: Number,
         required: true
+    },
+    zone: {
+        type: String,
+        trim: true,
+        default: 'Unknown'
+    },
+    image: {
+        type: String,
+        default: null
     }
-}, { timestamps: true });
+}, { _id: false, timestamps: true });
+
+applyBaseSchemaOptions(monsterSchema);
 
 module.exports = mongoose.model('Monster', monsterSchema);

@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
+const { applyBaseSchemaOptions } = require('../utils/serializer');
+const generateId = require('../utils/generateId');
 
 const playerSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        default: () => generateId()
+    },
     name: {
         type: String,
         required: true,
@@ -19,10 +25,12 @@ const playerSchema = new mongoose.Schema({
         default: 1
     },
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'User',
         required: true
     }
-}, { timestamps: true });
+}, { _id: false, timestamps: true });
+
+applyBaseSchemaOptions(playerSchema);
 
 module.exports = mongoose.model('Player', playerSchema);

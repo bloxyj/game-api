@@ -44,21 +44,12 @@ services:
     networks:
       - mongodb_network
 
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express 
-    hostname: mongo-express 
-    env_file:
-    - .env 
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME}
-      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD}
+  dbgate:
+    image: dbgate/dbgate:latest
+    container_name: dbgate
+    hostname: dbgate
     ports:
-      - "8081:8081"
+      - "8081:3000"
     depends_on:
       - mongodb
     networks:
