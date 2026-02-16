@@ -1,17 +1,24 @@
-const generateId = require('../utils/generateId');
+const Monster = require('../models/Monster.model');
 
-const monster_information = [{
-    id:generateId(),
-    PV: 100,
-    ATK: 24,
-    Type: "Wind Feary Shiny",
-},
-{
-    id:generateId(),
-    PV: 150,
-    ATK: 42,
-    Type: "King Skeleton BOSS",  
-}
-]
+module.exports = {
+    findAll: async () => {
+        return Monster.find();
+    },
 
-module.exports= monster_information;
+    findById: async (id) => {
+        return Monster.findById(id);
+    },
+
+    create: async (data) => {
+        const monster = new Monster(data);
+        return monster.save();
+    },
+
+    updateById: async (id, data) => {
+        return Monster.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+    },
+
+    deleteById: async (id) => {
+        return Monster.findByIdAndDelete(id);
+    }
+};

@@ -1,47 +1,40 @@
-// controllers/games.controller.js
 const gamesService = require('../services/games.service');
+const asyncHandler = require('../utils/asyncHandler');
 
-exports.createGame = (req, res) => {
-    
+exports.createGame = asyncHandler(async (req, res) => {
     const { playerId } = req.body;
 
     if (!playerId) {
-        return res.status(400).json({ error: "playerId est requis" });
+        return res.status(400).json({ message: 'playerId is required' });
     }
 
-    const game = gamesService.createGame(playerId);
+    const game = await gamesService.createGame(playerId);
 
     if (game.error) {
         return res.status(404).json(game);
     }
 
-    
     res.status(201).json(game);
-};
+});
 
-// controllers/games.controller.js (Ajouter à la suite)
-
-exports.move = (req, res) => {
-    // L'ID de la partie est dans l'URL (ex: /games/4/move)
+exports.move = asyncHandler(async (req, res) => {
     const gameId = req.params.id;
-    
-    const result = gamesService.movePlayer(gameId);
+    const result = await gamesService.movePlayer(gameId);
 
     if (result.error) {
         return res.status(400).json(result);
     }
 
     res.json(result);
-};
+});
 
-// controllers/games.controller.js (Ajouter à la fin)
-
-exports.attack = (req, res) => {
+exports.attack = asyncHandler(async (req, res) => {
     const gameId = req.params.id;
-    const result = gamesService.playTurn(gameId);
+    const { action = 'fight', timingScore = 0.5, dodgeScore = 0.0 } = req.body || {};
+    const result = await gamesService.playTurn(gameId, { action, timingScore, dodgeScore });
 
     if (result.error) {
         return res.status(400).json(result);
     }
     res.json(result);
-};
+});

@@ -1,31 +1,63 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const app = express();
-const port = 3000;
-const hostname = 'localhost';
+const connectDB = require('./data/db');
+const seedMonsters = require('./data/seed');
 
-// Import des routes
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Import routes
+const authRoutes = require('./routes/auth.routes');
 const playerRoutes = require('./routes/players.routes');
-const gamesRoutes = require('./routes/games.routes'); // Ta nouvelle route
+const gamesRoutes = require('./routes/games.routes');
 const monsterRoute = require('./routes/monster.route');
-const overviewRoute = require('./routes/overview.routes'); // Attention à l'orthographe (overview vs overwiew)
+const overviewRoute = require('./routes/overview.routes');
 
 app.use(express.json());
-
-// 👇 DÉCOMMENTE CETTE LIGNE (Enlève les // au début) 👇
-app.use(express.static('public')); 
-// 👆 C'est ça qui permet de charger style.css et script.js
-
-app.use('/game-api', overviewRoute);
-app.use('/game-api/players', playerRoutes);
-app.use('/game-api/games', gamesRoutes);
-app.use('/game-api/monster_info', monsterRoute);
-
-// Cette partie change légèrement pour renvoyer index.html par défaut
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
+    return res.sendStatus(204);
+  }
+  next();
 });
 
-app.listen(port, () => {
-  console.log(`Serveur lancé sur http://${hostname}:${port}`);
+
+// Auth routes
+app.use('/api/auth', authRoutes);
+
+// Protected routes
+app.use('/api/overview', overviewRoute);
+app.use('/api/players', playerRoutes);
+app.use('/api/games', gamesRoutes);
+
+// Public routes
+app.use('/api/monsters', monsterRoute);
+app.use('/assets', express.static(path.join(__dirname, 'data', 'assets')));
+
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  const status = err.status || 500;
+  const message = err.message || 'Unexpected error';
+  res.status(status).json({ message });
+});
+
+
+const startServer = async () => {
+  await connectDB();
+  await seedMonsters();
+  app.listen(port, () => {
+    console.log('___.   .__                                                 \r\n\\_ |__ |__| ____     ______ ______________  __ ___________ \r\n | __ \\|  |\/ ___\\   \/  ___\/\/ __ \\_  __ \\  \\\/ \/\/ __ \\_  __ \\\r\n | \\_\\ \\  \/ \/_\/  >  \\___ \\\\  ___\/|  | \\\/\\   \/\\  ___\/|  | \\\/\r\n |___  \/__\\___  \/  \/____  >\\___  >__|    \\_\/  \\___  >__|   \r\n     \\\/  \/_____\/        \\\/     \\\/                 \\\/       ');
+    console.log(`Server running on http://localhost:${port}`);
+  });
+};
+
+startServer();
