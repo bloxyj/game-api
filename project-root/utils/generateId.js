@@ -1,2 +1,8 @@
-let currentId = 0;
-module.exports = () => (currentId++).toString();
+let currentId = 1; // we the best
+
+module.exports = (seed) => {
+    if (seed !== undefined && seed !== null) {
+        return seed.toString();
+    }
+    return (currentId++).toString();
+};

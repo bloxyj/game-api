@@ -1,113 +1,120 @@
 // services/games.service.js
-const store = require('../data/store');
-const generateId = require('../utils/generateId');
+const Player = require('../models/Player.model');
+const Monster = require('../models/Monster.model');
+const Game = require('../models/Game.model');
+const { buildDungeon } = require('../utils/dungeon');
 
 
-exports.createGame = (playerId) => {
-    
-    const player = store.players.find(p => p.id === playerId);
+exports.createGame = async (playerId) => {
+    const player = await Player.findById(playerId);
     if (!player) {
-        return { error: "Joueur introuvable. Créez d'abord un joueur via POST /players" };
+        return { error: true, message: 'Player not found. Create a player first.' };
     }
 
-    
-    const dungeon = [
-        { id: 1, name: "Entrée sombre", monster: null },
-        { id: 2, name: "Couloir humide", monster: store.monsters[0] }, // Wind Feary
-        { id: 3, name: "Armurerie vide", monster: null },
-        { id: 4, name: "Antre du Boss", monster: store.monsters[1] },  // Sans
-        { id: 5, name: "Salle du trésor", monster: null, isExit: true }
-    ];
+    const monsters = await Monster.find();
+    const dungeon = buildDungeon(monsters);
 
-    const newGame = {
-        id: generateId(),
-        playerId: player.id,
+    const newGame = new Game({
+        playerId: player._id,
         playerName: player.name,
         dungeon: dungeon,
-        currentRoomId: 1, 
+        currentRoomId: dungeon[0].id, 
         playerCurrentHP: player.hp,
-        status: 'IN_PROGRESS', // 
-        logs: ["La partie commence. Vous entrez dans le donjon."]
-    };
+        status: 'IN_PROGRESS',
+        logs: ['The game begins. You enter the dungeon.']
+    });
 
-   
-    store.games.push(newGame);
+    await newGame.save();
     return newGame;
 };
 
-exports.movePlayer = (gameId) => {
-    
-    const game = store.games.find(g => g.id === gameId);
-    if (!game) return { error: "Partie introuvable." };
-    if (game.status !== 'IN_PROGRESS') return { error: "La partie est terminée." };
+exports.movePlayer = async (gameId) => {
+    const game = await Game.findById(gameId);
+    if (!game) return { error: true, message: 'Game not found.' };
+    if (game.status !== 'IN_PROGRESS') return { error: true, message: 'This game has ended.' };
 
     // 2. Vérifier la salle actuelle
-    const currentRoom = game.dungeon.find(r => r.id === game.currentRoomId);
-    
+    const currentIndex = game.dungeon.findIndex(r => r.id === game.currentRoomId);
+    const currentRoom = game.dungeon[currentIndex];
     
     if (currentRoom.monster && currentRoom.monster.hp > 0) {
-        return { error: "Un monstre vous bloque le passage ! Tuez-le pour avancer." };
+        return { error: true, message: 'A monster blocks the way. Defeat it to advance.' };
     }
 
     // 3. Calculer la prochaine salle
-    const nextRoomId = game.currentRoomId + 1;
-    const nextRoom = game.dungeon.find(r => r.id === nextRoomId);
+    const nextRoom = game.dungeon[currentIndex + 1];
 
     if (!nextRoom) {
-        
-        game.status = "VICTORY";
-        game.logs.push("Vous sortez du donjon. Victoire !");
+        game.status = 'VICTORY';
+        game.logs.push('You exit the dungeon. Victory!');
+        await game.save();
         return game;
     }
 
-    game.currentRoomId = nextRoomId;
-    game.logs.push(`Vous avancez vers : ${nextRoom.name}`);
+    game.currentRoomId = nextRoom.id;
+    game.logs.push(`You move to: ${nextRoom.name}`);
+    await game.save();
     
     return game;
 };
 
-// services/games.service.js (Ajouter à la fin)
-
-exports.playTurn = (gameId) => {
+exports.playTurn = async (gameId, { action = 'fight', timingScore = 0.5, dodgeScore = 0.0 } = {}) => {
     // 1. Récupérer la partie
-    const game = store.games.find(g => g.id === gameId);
-    if (!game) return { error: "Partie introuvable." };
-    if (game.status !== 'IN_PROGRESS') return { error: "La partie est terminée." };
+    const game = await Game.findById(gameId);
+    if (!game) return { error: true, message: 'Game not found.' };
+    if (game.status !== 'IN_PROGRESS') return { error: true, message: 'This game has ended.' };
 
     // 2. Récupérer la salle et le monstre
     const room = game.dungeon.find(r => r.id === game.currentRoomId);
     const monster = room.monster;
 
     if (!monster || monster.hp <= 0) {
-        return { error: "Il n'y a personne à attaquer ici !" };
+        return { error: true, message: 'There is nobody to attack here.' };
     }
 
-    // --- TOUR DU JOUEUR ---
-    // Dégâts aléatoires entre 10 et 25
-    const playerDmg = Math.floor(Math.random() * 15) + 10;
+    timingScore = Math.max(0, Math.min(1, timingScore));
+    dodgeScore = Math.max(0, Math.min(1, dodgeScore));
+
+
+    if (action === 'mercy') {
+        monster.hp = 0;
+        game.logs.push(`You spared ${monster.name}.`);
+        game.markModified('dungeon');
+        await game.save();
+        return game;
+    }
+
+
+    const baseDmg = 25 * (0.5 + Math.random() * 0.5);
+    const playerDmg = Math.max(1, Math.floor(baseDmg * timingScore));
     monster.hp -= playerDmg;
-    game.logs.push(`Vous attaquez ${monster.name} et infligez ${playerDmg} dégâts !`);
+    game.logs.push(`You attack ${monster.name} and deal ${playerDmg} damage.`);
 
     // Vérifier si le monstre meurt
     if (monster.hp <= 0) {
         monster.hp = 0;
-        game.logs.push(`VICTOIRE ! ${monster.name} est vaincu.`);
-        // On pourrait ajouter de l'XP ou du loot ici plus tard
-        return game; // Le tour s'arrête, le monstre ne riposte pas
+        game.playerCurrentHP = 100;
+        game.logs.push(`Victory! ${monster.name} is defeated.`);
+        game.logs.push('You feel rejuvenated. HP fully restored to 100.');
+        game.markModified('dungeon');
+        await game.save();
+        return game;
     }
 
     // --- TOUR DU MONSTRE ---
-    // Dégâts aléatoires entre 5 et 15
-    const monsterDmg = Math.floor(Math.random() * 10) + 5;
+    const monsterBaseDmg = monster.atk * (0.5 + Math.random() * 0.5);
+    const monsterDmg = Math.max(1, Math.floor(monsterBaseDmg * (1 - dodgeScore * 0.8)));
     game.playerCurrentHP -= monsterDmg;
-    game.logs.push(`${monster.name} riposte ! Vous perdez ${monsterDmg} PV.`);
+    game.logs.push(`${monster.name} strikes back. You lose ${monsterDmg} HP.`);
 
     // Vérifier si le joueur meurt
     if (game.playerCurrentHP <= 0) {
         game.playerCurrentHP = 0;
-        game.status = "GAME_OVER";
-        game.logs.push("Vous êtes mort... Fin de la partie.");
+        game.status = 'GAME_OVER';
+        game.logs.push('You died. Game over.');
     }
 
+    game.markModified('dungeon');
+    await game.save();
     return game;
 };

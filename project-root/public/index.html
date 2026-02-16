@@ -2,53 +2,88 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Rogue-Lite Undertale</title>
+    <title>Game-api_Undertale</title>
+    <link rel="icon" href="./img/Red_SOUL_Sprite.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./style.css">
-    <style>
-        /* Ajout de styles pour le menu et l'exploration */
-        #login-screen, #game-screen { display: none; }
-        .active-screen { display: block !important; }
-        
-        #room-info { 
-            text-align: center; margin-bottom: 20px; color: yellow; 
-            font-size: 1.2em; border: 2px solid white; padding: 10px;
-        }
-        #exploration-controls { text-align: center; margin-top: 20px; }
-        
-        input { background: black; color: white; border: 2px solid white; padding: 10px; font-family: inherit; }
-    </style>
 </head>
 <body>
 
+    <audio id="bg-music" src="./audio/010. Ghost Fight (UNDERTALE Soundtrack) - Toby Fox.mp3" loop></audio>
+
+    <!-- ===== LOGIN SCREEN ===== -->
     <div id="login-screen" class="active-screen undertale-ui">
         <h1>ROGUE-LITE API</h1>
-        <p>Entrez votre nom pour commencer :</p>
-        <input type="text" id="player-name-input" placeholder="Nom du joueur">
-        <br><br>
-        <button class="btn-undertale fight" id="btn-start-game">START</button>
+        
+        <div id="auth-section">
+            <div id="auth-login">
+                <p>Login to play:</p>
+                <input type="text" id="auth-username" placeholder="Username">
+                <input type="password" id="auth-password" placeholder="Password">
+                <br><br>
+                <button class="btn-undertale fight" id="btn-login">LOGIN</button>
+                <br><br>
+                <p class="auth-hint">No account? <a href="#" id="show-register">Register</a></p>
+            </div>
+            
+            <div id="auth-register">
+                <p>Create an account:</p>
+                <input type="text" id="reg-username" placeholder="Username">
+                <input type="email" id="reg-email" placeholder="Email">
+                <input type="password" id="reg-password" placeholder="Password (min 6 chars)">
+                <br><br>
+                <button class="btn-undertale fight" id="btn-register">REGISTER</button>
+                <br><br>
+                <p class="auth-hint">Already have an account? <a href="#" id="show-login">Login</a></p>
+            </div>
+        </div>
+
+        <div id="player-section">
+            <p>Welcome, <span id="auth-user-display"></span>! <a href="#" id="btn-logout">Logout</a></p>
+            <p>Enter your character name:</p>
+            <input type="text" id="player-name-input" placeholder="Nom du joueur">
+            <br><br>
+            <button class="btn-undertale fight" id="btn-start-game">START</button>
+        </div>
     </div>
 
+    <!-- ===== GAME SCREEN ===== -->
     <div id="game-screen" class="undertale-ui">
         
         <div id="room-info">
-            <h2 id="room-name">Chargement...</h2>
-            <p id="room-log" style="font-size: 0.8em; color: #ccc;">...</p>
+            <h2 id="room-name">Loading...</h2>
+            <p id="room-log">...</p>
         </div>
 
-        <div id="combat-ui" style="display:none;">
+        <div id="combat-ui">
+            <!-- Enemy info -->
             <div id="enemy-ui-block" class="enemy-stats">
-                <span class="enemy-name" id="enemy-name-display">MONSTRE</span>
+                <span class="enemy-name" id="enemy-name-display">MONSTER</span>
                 <div class="enemy-hp-container"><div id="enemy-hp" class="enemy-hp-fill"></div></div>
             </div>
             
+            <!-- Enemy sprite -->
             <div class="enemy-container">
                 <img src="img/sans-removebg.png" alt="Enemy" class="enemy-sprite" id="enemy-sprite">
             </div>
 
-            <div class="battle-box"><p id="log">* Le combat commence.</p></div>
+            <!-- Timing bar (hidden until FIGHT action chosen) -->
+            <div id="timing-bar-container">
+                <div id="timing-bar">
+                    <div id="timing-sweetspot"></div>
+                    <div id="timing-indicator"></div>
+                </div>
+                <p id="timing-label">Press ENTER or click to strike!</p>
+            </div>
 
+            <!-- Battle box: now a canvas for bullet-hell dodge phase -->
+            <div id="battle-box-wrapper" class="battle-box">
+                <p id="battle-text">* The battle begins.</p>
+                <canvas id="battle-canvas" width="568" height="200"></canvas>
+            </div>
+
+            <!-- Player stats -->
             <div class="player-stats">
-                <span id="player-name-display">JOUEUR</span> <span style="margin-left:20px">LV 1</span>
+                <span id="player-name-display">PLAYER</span> <span class="lv-display">LV 1</span>
                 <div class="hp-section">
                     <span class="hp-label">HP</span>
                     <div class="hp-bar-container"><div id="player-hp" class="hp-bar-fill"></div></div>
@@ -56,14 +91,17 @@
                 </div>
             </div>
 
+            <!-- Action menu -->
             <div class="action-buttons" id="combat-buttons">
                 <button class="btn-undertale fight" id="btn-attack">FIGHT</button>
+                <button class="btn-undertale mercy" id="btn-mercy">MERCY</button>
             </div>
         </div>
 
-        <div id="exploration-controls" style="display:none;">
-            <p>* La voie est libre.</p>
-            <button class="btn-undertale mercy" id="btn-move">AVANCER</button>
+        <!-- Exploration (between fights) -->
+        <div id="exploration-controls">
+            <p>* The way is clear.</p>
+            <button class="btn-undertale mercy" id="btn-move">ADVANCE</button>
         </div>
 
     </div>
